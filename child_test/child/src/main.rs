@@ -1,27 +1,29 @@
-use std::process;
-// use std::io:Stdin;
+use tokio::prelude::*;
+use tokio::io;
+// use std::io::{ BufReader, BufRead };
+
+#[tokio::main]
+async fn main() -> io::Result<()> {
+    let mut buffer = String::new();
+    let mut stdin = io::stdin();
+    let mut stdout = io::stdout();
+
+    let output = stdin.read_to_string(&mut buffer).await?;
+    println!("{}", buffer);
+    Ok(())
+}
 
 // fn main() {
-    
-//     println!("Hello, world! {}", process::id());
-    
+//     let mut buffer = String::new();
+//     let stdin = io::stdin();
+//     let mut handle = stdin.lock();
+
+//     handle.read_to_string(&mut buffer);
+
+//     let stdout = io::stdout();
+//     let mut handle_out = stdout.lock();
+
+//     let message = format!("Fuck yeah! {}", buffer);
+//     handle_out.write_all(message.as_bytes());
+//     // println!("Hello, world! {}", buffer);
 // }
-
-
-use std::io::{self, Read, Write};
-// use tokio::io::{self, AsyncRead, AsyncWrite};
-
-fn main() {
-    let mut buffer = String::new();
-    let stdin = io::stdin();
-    let mut handle = stdin.lock();
-
-    handle.read_to_string(&mut buffer);
-
-    let stdout = io::stdout();
-    let mut handle_out = stdout.lock();
-
-    let message = format!("Fuck yeah! {}", buffer);
-    handle_out.write_all(message.as_bytes());
-    // println!("Hello, world! {}", buffer);
-}

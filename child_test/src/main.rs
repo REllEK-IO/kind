@@ -1,24 +1,50 @@
+use tokio::prelude::*;
 use tokio::time;
-use tokio::process::Command;
-use std::process::{ Stdio };
+use tokio::process::{Child, Command};
+// use std::io::{ self, Write, Read };
+use std::process::Stdio;
 
-async fn task_that_takes_a_second(kind: Command) {
-    kind.stdin(Stdio::piped().lock().write_all(b"Test"));
-    time::sleep(time::Duration::from_secs(1)).await
-}
 
 #[tokio::main]
 async fn main() {
-    // let mut stdout = Stdio::piped();
-    // let mut stdin = Stdio::piped();
-    let mut process = Command::new("child/target/debug/child.exe");
+    let mut child_process = Command::new("child/target/debug/child.exe");
+    child_process
+        .stdout(Stdio::piped())
+        .stdin(Stdio::piped());
 
-    let mut interval = time::interval(time::Duration::from_secs(2));
-    for _i in 0..5 {
-        interval.tick().await;
-        task_that_takes_a_second(process).await;
-    }
+    let mut child = child_process.spawn().unwrap();
+
+    let mut stdout = child.stdout.take().unwrap();
+    let mut stdin = child.stdin.take().unwrap();
+
+    stdin.write_all(b"Hello World!");
+
+    drop(child.stdin.take());
+    drop(child.stdout.take());
+    drop(child.stderr.take());
 }
+
+// async fn task_that_takes_a_second(i: usize, kind: &Command) {
+//     let stdout = io::stdout();
+//     let mut handle = stdout.lock();
+//     stdout.write(b"TEST");
+//     let stdout = kind.stdout(stdout);
+//     // handle.write_all(format!("{}\n", i).as_bytes());
+//     time::sleep(time::Duration::from_secs(1)).await
+// }
+
+// #[tokio::main]
+// async fn main() {
+//     // let mut stdout = Stdio::piped();
+//     // let mut stdin = Stdio::piped();
+//     let mut process = Command::new("child/target/debug/child.exe");
+
+//     let mut interval = time::interval(time::Duration::from_secs(2));
+//     for i in 0..5 {
+//         interval.tick().await;
+//         task_that_takes_a_second(i, &process).await;
+//     }
+// }
 
 // use std::io::prelude::*;
 // use std::process::{Command, Stdio};
