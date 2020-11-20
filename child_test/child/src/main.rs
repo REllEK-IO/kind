@@ -8,8 +8,9 @@ async fn main() -> io::Result<()> {
     let mut stdin = io::stdin();
     let mut stdout = io::stdout();
 
-    let output = stdin.read_to_string(&mut buffer).await?;
-    println!("{}", buffer);
+    stdin.read_to_string(&mut buffer).await?;
+
+    stdout.write_all(&mut buffer.as_bytes()).await?;
     Ok(())
 }
 

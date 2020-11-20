@@ -1,13 +1,16 @@
 use tokio::prelude::*;
 use tokio::time;
 use tokio::process::{Child, Command};
+use tokio::io::{AsyncBufReadExt, AsyncWriteExt, BufReader};
 // use std::io::{ self, Write, Read };
 use std::process::Stdio;
+use futures::*;
 
 
 #[tokio::main]
 async fn main() {
     let mut child_process = Command::new("child/target/debug/child.exe");
+
     child_process
         .stdout(Stdio::piped())
         .stdin(Stdio::piped());
@@ -17,11 +20,46 @@ async fn main() {
     let mut stdout = child.stdout.take().unwrap();
     let mut stdin = child.stdin.take().unwrap();
 
-    stdin.write_all(b"Hello World!");
+    let write = async {
+        stdin.write_all(b"Hello World!").await.unwrap();
+        
+        drop(stdin);
+    };
 
-    drop(child.stdin.take());
-    drop(child.stdout.take());
-    drop(child.stderr.take());
+    let read = async {
+        let mut reader = BufReader::new(stdout).lines();
+        let mut num_lines = 0;
+        let n = 10_usize;
+        // Try to read `n + 1` lines, ensuring the last one is empty
+        // (i.e. EOF is reached after `n` lines.
+        loop {
+            let data = reader
+                .next_line()
+                .await
+                .unwrap_or_else(|_| Some(String::new()))
+                .expect("failed to read line");
+
+            let num_read = data.len();
+            let done = num_lines >= n;
+
+            match (done, num_read) {
+                (false, 0) => panic!("broken pipe"),
+                (true, n) if n != 0 => panic!("extraneous data"),
+                _ => {
+                    let expected = format!("line {}", num_lines);
+                    assert_eq!(expected, data);
+                }
+            };
+        }
+    };
+    
+
+    // drop(child.stdin.take());
+    // drop(child.stdout.take());
+    // drop(child.stderr.take());
+
+    // future::join(write, read)
+        // .map(|(_, _, status)| status)
 }
 
 // async fn task_that_takes_a_second(i: usize, kind: &Command) {
