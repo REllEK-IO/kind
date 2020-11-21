@@ -1,5 +1,5 @@
 use tokio::prelude::*;
-use tokio::time;
+// use tokio::time;
 use tokio::process::{Child, Command};
 use tokio::io::{AsyncBufReadExt, AsyncWriteExt, BufReader};
 // use std::io::{ self, Write, Read };
@@ -17,17 +17,17 @@ async fn main() {
 
     let mut child = child_process.spawn().unwrap();
 
-    let mut stdout = child.stdout.take().unwrap();
-    let mut stdin = child.stdin.take().unwrap();
+    let kind_stdout = child.stdout.take().unwrap();
+    let mut kind_stdin = child.stdin.take().unwrap();
 
     let write = async {
-        stdin.write_all(b"Hello World!").await.unwrap();
+        kind_stdin.write_all(b"Hello Kind!").await.unwrap();
         
-        drop(stdin);
+        drop(kind_stdin);
     };
 
     let read = async {
-        let mut reader = BufReader::new(stdout).lines();
+        let mut reader = BufReader::new(kind_stdout).lines();
         let mut num_lines = 0;
         let n = 10_usize;
         // Try to read `n + 1` lines, ensuring the last one is empty
@@ -50,6 +50,7 @@ async fn main() {
                     assert_eq!(expected, data);
                 }
             };
+            println!("HI!");
         }
     };
     
@@ -58,7 +59,7 @@ async fn main() {
     // drop(child.stdout.take());
     // drop(child.stderr.take());
 
-    // future::join(write, read)
+    future::join(write, read).await;
         // .map(|(_, _, status)| status)
 }
 
