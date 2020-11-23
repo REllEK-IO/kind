@@ -1,11 +1,12 @@
 use tokio::prelude::*;
 // use tokio::time;
 use tokio::process::{Child, Command};
-use tokio::io::{AsyncBufReadExt, AsyncWriteExt, BufReader};
+use tokio::io::{AsyncBufReadExt, AsyncWriteExt, AsyncWrite, BufReader};
 // use std::io::{ self, Write, Read };
-use std::process::Stdio;
+use std::process::{ChildStdin, Stdio};
 use futures::*;
 
+use kind::kinder;
 
 #[tokio::main]
 async fn main() {
@@ -22,8 +23,9 @@ async fn main() {
 
     let write = async {
         kind_stdin.write_all(b"Hello Kind!").await.unwrap();
+        kinder::kind_write(kind_stdin, String::from("Hello) World")).await;
         
-        drop(kind_stdin);
+        // drop(kind_stdin);
     };
 
     let read = async {

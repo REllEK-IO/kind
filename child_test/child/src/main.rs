@@ -10,15 +10,20 @@ async fn main() -> io::Result<()> {
     let mut stdout = io::stdout();
 
     let write = async {
-        stdout.write_all(b"Hello World!").await.unwrap();
+        loop {
+            if buffer.len() == 0 {
+                continue;
+            } else {
+                stdout.write_all(buffer.as_bytes()).await.unwrap();
+            }
+        };
         
         drop(stdout);
     };
 
     let read = async {
-        let mut reader = BufReader::new(stdin).lines();
-        let mut num_lines = 0;
-        let n = 10_usize;
+        let mut reader = BufReader::new(stdin);
+        
         // Try to read `n + 1` lines, ensuring the last one is empty
         // (i.e. EOF is reached after `n` lines.
         loop {

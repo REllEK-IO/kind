@@ -1,5 +1,5 @@
 [package]
-name = "child_test"
+name = "kind"
 version = "0.1.0"
 authors = ["mtKeller (RE||EK iO) <micah.t.keller@gmail.com>"]
 edition = "2018"
