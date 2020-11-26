@@ -8,6 +8,7 @@ mod kinder {
     use tokio::io::{AsyncBufReadExt, AsyncWriteExt, AsyncWrite, AsyncRead, BufReader};
     use std::error::Error;
     use std::fmt;
+    use async_channel::{ self, Sender, Receiver};
     // use std::io::{ self, Write, Read };
     use std::process::{ChildStdin, ChildStdout, Stdio};
     // use futures::*;
@@ -15,14 +16,19 @@ mod kinder {
     // use std::thread;
     pub struct Kind {
         pub path: String,
-        cmd: Child
+        cmd: Child,
+        sender: Sender<String>,
+        receiver: Receiver<String>,
     }
 
     impl Default for Kind {
-        fn default() -> Self { 
+        fn default() -> Self {
+            let (sender, receiver) = async_channel::unbounded();
             Self { 
                 path: String::from("Hello World"),
                 cmd: Command::new("").spawn().unwrap(),
+                sender: sender,
+                receiver: receiver
             } 
         }
     }
@@ -39,18 +45,21 @@ mod kinder {
     }
 
     pub fn kind (path: &str) -> Result<Kind, String> {
+        let (sender, receiver) = async_channel::unbounded();
         let mut child_process = Command::new("child/target/debug/child.exe");
         child_process
             .stdout(Stdio::piped())
             .stdin(Stdio::piped());
-        let mut child: Child;
+        let child: Child;
         match child_process.spawn() {
             Ok(c) => child = c,
             _ => return Err(String::from("Error starting child from path")),
         };
         Ok(Kind { 
             path: String::from(path),
-            cmd: child
+            cmd: child,
+            sender: sender,
+            receiver: receiver,
         })
     }
 
