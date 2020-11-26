@@ -1,2 +1,2 @@
 # kind
-deno async child worker
+async rust/deno parent + child library.
